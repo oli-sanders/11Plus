@@ -1,0 +1,13 @@
+name = "nvr-progress"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+# Create the namespace once with:  npx wrangler kv namespace create PROGRESS
+# then paste the id it prints below.
+[[kv_namespaces]]
+binding = "PROGRESS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+# Sites allowed to read and write progress (comma separated, no trailing slash).
+ALLOWED_ORIGINS = "https://o-os.uk,https://oli-sanders.github.io,http://localhost:8000"

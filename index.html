@@ -6,6 +6,8 @@
 <meta name="description" content="Free 11+ non-verbal reasoning practice. Every question is generated fresh: odd one out, series, analogies, codes, grids and more.">
 <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121419" media="(prefers-color-scheme: dark)">
+<!-- Progress server (Cloudflare Worker URL). Leave empty to keep progress in this browser only. -->
+<meta name="progress-api" content="">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
 html{color-scheme:light dark;-webkit-text-size-adjust:100%}
@@ -134,6 +136,45 @@ table.bytype td.n{text-align:right;font-family:var(--f-mono)}
 .rv .qhead span.res.ok{color:var(--ok)} .rv .qhead span.res.no{color:var(--bad)}
 .rv .prompt{font-size:17px}
 .rv .opts{max-width:460px}
+/* header views */
+.topright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.views{display:flex;gap:2px;border:1.5px solid var(--rule);border-radius:8px;padding:2px;background:var(--sheet)}
+.views a{padding:4px 12px;border-radius:6px;text-decoration:none;color:var(--muted);font-weight:700;font-size:14px}
+.views a[aria-current="page"]{background:var(--ink);color:var(--sheet)}
+.views a:focus-visible{outline:2.5px solid var(--accent);outline-offset:1px}
+/* progress */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{border-top:2px solid var(--ink);padding-top:6px;min-width:0}
+.tile .v{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,6vw,34px);line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chartbox{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sheet h3{font-family:var(--f-display);font-size:18px;margin:0}
+.chartbox p{margin:0 0 6px;color:var(--muted);font-size:14px}
+.chart{width:100%;min-height:190px}
+.chart svg{display:block;max-width:100%}
+.chart .gl{stroke:var(--rule);stroke-width:1}
+.chart .ax{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.chart .ar{fill:var(--accent);opacity:.12}
+.chart .dt{fill:var(--sheet);stroke:var(--accent);stroke-width:1.8}
+.chart .end{fill:var(--accent)}
+.chart .vl{fill:var(--ink);font-family:var(--f-mono);font-size:12px;font-weight:600}
+.chart .one{color:var(--muted);font-size:14px;padding:20px 0}
+.tblwrap{overflow-x:auto}
+.focus{border-left:3px solid var(--accent);background:var(--accent-soft);padding:8px 12px;border-radius:0 6px 6px 0;margin:0}
+.linkbox{border:1.5px dashed var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.linkbox p{margin:0;font-size:14px;color:var(--muted)}
+.linkrow{display:flex;gap:8px}
+.linkrow input{flex:1;min-width:0;font-family:var(--f-mono);font-size:13px;padding:8px;border:1.5px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink)}
+.linkacts{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.sync{font-size:13px;color:var(--muted)}
+.sync.ok{color:var(--ok)}
+.sync.warn{color:var(--bad)}
+.textbtn{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
+.saved{margin:0;font-size:14px}
+.saved a{color:var(--accent);font-weight:700}
+.empty{color:var(--muted);margin:0}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 @media (max-width:420px){ .opts,.row5{gap:5px} .opt{padding:4px 2px 6px} .loz{width:28px} }
 </style>
@@ -159,7 +200,7 @@ table.bytype td.n{text-align:right;font-family:var(--f-mono)}
       <h1>Shape Logic <span>11+</span></h1>
       <p>Non-verbal reasoning practice. Every question is generated fresh.</p>
     </div>
-    <div class="tally" id="tally"></div>
+    <div class="topright"><nav class="views" aria-label="Views"><a href="#paper" id="navPaper">Paper</a><a href="#progress" id="navProg">Progress</a></nav><div class="tally" id="tally"></div></div>
   </header>
 
   <details class="setup" id="setup">
@@ -517,7 +558,7 @@ let settings=Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem('nvr-settings')||'null');if(s&&Array.isArray(s.types)&&s.types.length)settings=Object.assign({},DEF,s)}catch(e){}
 const saveSettings=()=>{try{localStorage.setItem('nvr-settings',JSON.stringify(settings))}catch(e){}};
 let draft=JSON.parse(JSON.stringify(settings));
-let S_={qs:[],i:0,ans:[],locked:[],t0:0,t1:0,done:false};
+let S_={qs:[],i:0,ans:[],locked:[],first:[],spent:[],timing:null,t0:0,t1:0,done:false,recorded:false};
 let timer=null;
 
 function makeQ(type,hard){for(let k=0;k<5;k++){const q=TMAP[type].gen(hard);if(q){q.hard=hard;return q}}return null}
@@ -526,7 +567,7 @@ function newPaper(){
   const order=[];let pool=[];
   while(order.length<settings.len){if(!pool.length)pool=shuffle(settings.types);order.push(pool.pop())}
   const qs=order.map(t=>makeQ(t,settings.hard)).filter(Boolean);
-  S_={qs,i:0,ans:qs.map(()=>null),locked:qs.map(()=>false),t0:Date.now(),t1:0,done:false};
+  S_={qs,i:0,ans:qs.map(()=>null),locked:qs.map(()=>false),first:qs.map(()=>null),spent:qs.map(()=>0),timing:null,t0:Date.now(),t1:0,done:false,recorded:false};
   clearInterval(timer);timer=setInterval(tick,1000);
   render();
 }
@@ -585,10 +626,18 @@ function renderTally(){
     :`<span>Answered <b>${S_.ans.filter(a=>a!=null).length}/${S_.qs.length}</b></span><span>Time <b id="clock">${fmt(Date.now()-S_.t0)}</b></span>`;
 }
 
+const isProgress=()=>location.hash==='#progress';
+function bank(){if(S_.timing){S_.spent[S_.timing.i]+=Date.now()-S_.timing.at;S_.timing=null}}
 function render(){
+  bank();
+  const prog=isProgress();
+  document.getElementById('setup').hidden=prog;
+  const np=document.getElementById('navPaper'),nq=document.getElementById('navProg');
+  np.removeAttribute('aria-current');nq.removeAttribute('aria-current');(prog?nq:np).setAttribute('aria-current','page');
   renderTally();
   const main=document.getElementById('main');
-  if(S_.done){main.innerHTML=resultsHTML();bindResults();return}
+  if(prog){renderProgress();return}
+  if(S_.done){main.innerHTML=resultsHTML();bindResults();refreshSync();return}
   const q=S_.qs[S_.i],i=S_.i,N=S_.qs.length;
   const practice=settings.mode==='practice',locked=S_.locked[i],chosen=S_.ans[i];
   const last=i===N-1;
@@ -612,10 +661,11 @@ function render(){
   const nx=document.getElementById('next');if(nx)nx.onclick=next;
   const pv=document.getElementById('prev');if(pv)pv.onclick=()=>{S_.i--;render()};
   const fn=document.getElementById('finish');if(fn)fn.onclick=finish;
+  if(!(practice&&locked)&&!document.hidden)S_.timing={i,at:Date.now()};
 }
 function choose(k){
   const i=S_.i;if(settings.mode==='practice'&&S_.locked[i])return;
-  S_.ans[i]=k;
+  S_.ans[i]=k;if(S_.first[i]==null)S_.first[i]=k;
   if(settings.mode==='practice')S_.locked[i]=true;
   render();
   if(settings.mode==='practice'){const nx=document.getElementById('next');if(nx)nx.focus({preventScroll:true})}
@@ -625,7 +675,12 @@ function next(){
   S_.i++;render();
   const sh=document.querySelector('.sheet');if(sh&&sh.getBoundingClientRect().top<0)sh.scrollIntoView({block:'start'});
 }
-function finish(){S_.locked=S_.qs.map(()=>true);S_.done=true;S_.t1=Date.now();clearInterval(timer);render();window.scrollTo({top:0})}
+function finish(){
+  bank();S_.locked=S_.qs.map(()=>true);S_.done=true;S_.t1=Date.now();clearInterval(timer);
+  if(!S_.recorded){S_.recorded=true;recordSession({id:uuid(),t:S_.t0,mode:settings.mode,hard:settings.hard?1:0,dur:S_.t1-S_.t0,
+    q:S_.qs.map((q,i)=>[q.type,S_.ans[i]===q.answer?1:0,S_.first[i]===q.answer?1:0,Math.min(3600,Math.round(S_.spent[i]/100)/10)])})}
+  render();window.scrollTo({top:0});
+}
 
 function resultsHTML(){
   const N=S_.qs.length,right=S_.qs.filter((q,i)=>S_.ans[i]===q.answer).length;
@@ -633,10 +688,12 @@ function resultsHTML(){
   const byType=TYPES.map(t=>{const idx=S_.qs.map((q,i)=>q.type===t.id?i:-1).filter(i=>i>=0);
     return {t,n:idx.length,r:idx.filter(i=>S_.ans[i]===S_.qs[i].answer).length}}).filter(x=>x.n);
   const wrong=S_.qs.map((q,i)=>i).filter(i=>S_.ans[i]!==S_.qs[i].answer);
+  const rft=S_.qs.filter((q,i)=>S_.first[i]===q.answer).length;
   return `<section class="sheet">
     <div class="qhead"><span class="qtype">Paper marked</span><span>${settings.hard?'Challenging':'Standard'} · ${settings.mode==='test'?'Test':'Practice'}</span></div>
     <div class="score"><div class="big">${right}<small>/${N}</small></div>
-      <div class="meta">${Math.round(right/N*100)}% correct<br>${fmt(ms)} total · ${Math.round(ms/1000/N)}s per question</div></div>
+      <div class="meta">${Math.round(right/N*100)}% correct<br>${settings.mode==='test'?`${rft}/${N} right first time<br>`:''}${fmt(ms)} total · ${Math.round(ms/1000/N)}s per question</div></div>
+    <p class="saved"><span class="sync syncState"></span> <a href="#progress">See your progress</a></p>
     <table class="bytype"><thead><tr><th>Question type</th><th style="text-align:right">Score</th></tr></thead><tbody>
     ${byType.map(x=>`<tr><td>${x.t.name}</td><td class="n">${x.r}/${x.n}<span class="meter"><i style="width:${x.r/x.n*100}%"></i></span></td></tr>`).join('')}
     </tbody></table>
@@ -656,7 +713,8 @@ function bindResults(){
 }
 
 document.addEventListener('keydown',e=>{
-  if(S_.done||!S_.qs.length||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(isProgress()||S_.done||!S_.qs.length||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target.tagName==='INPUT')return;
   if(e.target.closest&&e.target.closest('summary'))return;
   const k=e.key.toLowerCase();const idx='abcde'.indexOf(k);const nIdx='12345'.indexOf(k);
   if(idx>=0||nIdx>=0){choose(idx>=0?idx:nIdx);e.preventDefault();return}
@@ -666,9 +724,165 @@ document.addEventListener('keydown',e=>{
   if(k==='arrowleft'&&settings.mode==='test'&&S_.i>0){S_.i--;render()}
 });
 
+/* ---------- profile, storage & sync ---------- */
+const API=((document.querySelector('meta[name="progress-api"]')||{}).content||'').trim().replace(/\/+$/,'');
+const ID_RE=/^[A-Za-z0-9-]{8,64}$/;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function uuid(){
+  if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
+}
+function initProfile(){
+  const u=new URL(location.href);let id=u.searchParams.get('id');
+  if(!id||!ID_RE.test(id)){
+    id=store.get('nvr-id',null);
+    if(!id||!ID_RE.test(id))id=uuid();
+    u.searchParams.set('id',id);history.replaceState(null,'',u.pathname+u.search+u.hash);
+  }
+  store.set('nvr-id',id);return id;
+}
+const PID=initProfile();
+const SKEY='nvr-sessions-'+PID,PKEY='nvr-pending-'+PID;
+const profile={sessions:store.get(SKEY,[]),sync:API?'loading':'local'};
+const progressLink=()=>`${location.origin}${location.pathname}?id=${PID}`;
+const mergeSessions=(a,b)=>{const m=new Map();a.concat(b).forEach(s=>{if(s&&s.id&&Array.isArray(s.q))m.set(s.id,s)});return [...m.values()].sort((x,y)=>x.t-y.t)};
+async function api(method,body){
+  const r=await fetch(`${API}/progress/${encodeURIComponent(PID)}`,{method,headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+let flushing=null;
+function flush(){
+  if(!API)return Promise.resolve();
+  if(flushing)return flushing;
+  flushing=(async()=>{
+    for(const s of store.get(PKEY,[])){
+      const d=await api('POST',{session:s});
+      profile.sessions=mergeSessions(profile.sessions,d.sessions||[]);
+      store.set(PKEY,store.get(PKEY,[]).filter(x=>x.id!==s.id));
+    }
+    store.set(SKEY,profile.sessions);
+  })().finally(()=>{flushing=null});
+  return flushing;
+}
+async function sync(){
+  if(!API)return;
+  try{
+    const d=await api('GET');
+    profile.sessions=mergeSessions(profile.sessions,d.sessions||[]);
+    store.set(SKEY,profile.sessions);
+    // anything on this device the server hasn't got yet goes up too
+    const remote=new Set((d.sessions||[]).map(s=>s.id));
+    const missing=profile.sessions.filter(s=>!remote.has(s.id));
+    const pend=store.get(PKEY,[]);store.set(PKEY,mergeSessions(pend,missing));
+    await flush();profile.sync='synced';
+  }catch(e){profile.sync='offline'}
+  refreshProfileUI();
+}
+async function recordSession(s){
+  profile.sessions=mergeSessions(profile.sessions,[s]);store.set(SKEY,profile.sessions);
+  if(API){
+    store.set(PKEY,mergeSessions(store.get(PKEY,[]),[s]));profile.sync='saving';refreshSync();
+    try{await flush();profile.sync='synced'}catch(e){profile.sync='offline'}
+  }
+  refreshProfileUI();
+}
+const SYNCTEXT={local:['Saved in this browser only.',''],loading:['Loading your progress…',''],saving:['Saving…',''],
+  synced:['Saved to your progress link.','ok'],offline:['Could not reach the progress server. Saved in this browser; it will retry.','warn']};
+function refreshSync(){document.querySelectorAll('.syncState').forEach(el=>{const [t,c]=SYNCTEXT[profile.sync];el.textContent=t;el.className='sync syncState '+c})}
+function refreshProfileUI(){refreshSync();if(isProgress())renderProgress()}
+window.addEventListener('online',()=>{if(API)sync()});
+
+/* ---------- progress view ---------- */
+const pct=x=>Math.round(x*100)+'%';
+const secs=x=>(x<10?x.toFixed(1):Math.round(x))+'s';
+const day=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+function sStats(s){const n=s.q.length||1;return {rft:s.q.filter(x=>x[2]).length/n,avg:s.q.reduce((a,x)=>a+(+x[3]||0),0)/n}}
+function linkBoxHTML(){
+  return `<div class="linkbox">
+    <h3>Your progress link</h3>
+    <p>Bookmark this link. Opening it on any device brings back the same progress.</p>
+    <div class="linkrow"><input id="plink" readonly value="${progressLink()}" aria-label="Progress link"><button class="btn" id="copyLink" type="button">Copy</button></div>
+    <div class="linkacts"><span class="sync syncState"></span><button class="textbtn" id="newProfile" type="button">Start a new profile</button></div>
+  </div>`;
+}
+function bindLinkBox(){
+  const inp=document.getElementById('plink'),cp=document.getElementById('copyLink'),np=document.getElementById('newProfile');
+  cp.onclick=()=>{const done=()=>{cp.textContent='Copied';setTimeout(()=>cp.textContent='Copy',1600)};
+    const fallback=()=>{inp.focus();inp.select();try{document.execCommand('copy');done()}catch(e){}};
+    if(navigator.clipboard)navigator.clipboard.writeText(inp.value).then(done,fallback);else fallback()};
+  let armed=false;
+  np.onclick=()=>{if(!armed){armed=true;np.textContent='Tap again to start a new, empty profile';return}
+    const id=uuid();store.set('nvr-id',id);location.href=`${location.pathname}?id=${id}`};
+  refreshSync();
+}
+function renderProgress(){
+  const main=document.getElementById('main'),ss=profile.sessions;
+  const head=`<div class="qhead"><span class="qtype">Progress</span><span>${ss.length?`${ss.length} paper${ss.length>1?'s':''} since ${day(ss[0].t)}`:''}</span></div>`;
+  if(!ss.length){
+    main.innerHTML=`<section class="sheet">${head}<p class="empty">${profile.sync==='loading'?'Loading your progress…':'No marked papers yet. Finish a paper and the results appear here, with charts from the second paper on.'}</p>${linkBoxHTML()}</section>`;
+    bindLinkBox();return;
+  }
+  const all=ss.flatMap(s=>s.q.map(x=>({ty:x[0],c:x[1],f:x[2],s:+x[3]||0})));
+  const n=all.length,rft=all.filter(q=>q.f).length/n,avg=all.reduce((a,q)=>a+q.s,0)/n;
+  const recent=ss.slice(-30),per=recent.map(sStats),dates=recent.map(s=>s.t);
+  const rows=TYPES.map(t=>{const qs=all.filter(q=>q.ty===t.id);if(!qs.length)return null;
+    const last=qs.slice(-10);
+    return {t,n:qs.length,rft:qs.filter(q=>q.f).length/qs.length,avg:qs.reduce((a,q)=>a+q.s,0)/qs.length,last:last.filter(q=>q.f).length/last.length}}).filter(Boolean);
+  const ranked=rows.filter(r=>r.n>=5).sort((a,b)=>a.rft-b.rft);
+  const focus=ranked.length>1&&ranked[0].rft<.85?`<p class="focus">Most room to improve: <strong>${ranked[0].t.name}</strong>, right first time on ${pct(ranked[0].rft)} of ${ranked[0].n} questions.</p>`:'';
+  main.innerHTML=`<section class="sheet">${head}
+    <div class="tiles">
+      <div class="tile"><div class="v">${ss.length}</div><div class="k">Papers</div></div>
+      <div class="tile"><div class="v">${n}</div><div class="k">Questions</div></div>
+      <div class="tile"><div class="v">${pct(rft)}</div><div class="k">Right first time</div></div>
+      <div class="tile"><div class="v">${secs(avg)}</div><div class="k">Per question</div></div>
+    </div>
+    ${focus}
+    <div class="chartbox"><h3>Right first time</h3><p>Share of questions answered correctly on the first choice, per paper${ss.length>30?' (last 30)':''}.</p><div class="chart" id="chRft"></div></div>
+    <div class="chartbox"><h3>Seconds per question</h3><p>Average time spent on each question, per paper. Lower is faster.</p><div class="chart" id="chSec"></div></div>
+    <h3>By question type</h3>
+    <div class="tblwrap"><table class="bytype"><thead><tr><th>Type</th><th style="text-align:right">Done</th><th style="text-align:right">Right first time</th><th style="text-align:right">Avg time</th><th style="text-align:right">Last 10</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.t.name}</td><td class="n">${r.n}</td><td class="n">${pct(r.rft)}<span class="meter"><i style="width:${r.rft*100}%"></i></span></td><td class="n">${secs(r.avg)}</td><td class="n">${pct(r.last)}</td></tr>`).join('')}
+    </tbody></table></div>
+    ${linkBoxHTML()}
+  </section>`;
+  const draw=()=>{
+    lineChart(document.getElementById('chRft'),per.map(p=>p.rft*100),dates,{max:100,ticks:[0,25,50,75,100],fmt:v=>v+'%',label:'Right first time per paper'});
+    const mx=Math.max(30,Math.ceil(Math.max(...per.map(p=>p.avg))/10)*10);
+    lineChart(document.getElementById('chSec'),per.map(p=>p.avg),dates,{max:mx,ticks:[0,mx/2,mx],fmt:v=>Math.round(v)+'s',label:'Average seconds per question per paper'});
+  };
+  draw();bindLinkBox();
+}
+function lineChart(el,vals,dates,o){
+  if(!el)return;
+  if(vals.length<2){el.innerHTML=`<div class="one">One paper so far: ${o.fmt(Math.round(vals[0]))}. The chart starts after your next paper.</div>`;return}
+  const W=Math.max(260,Math.floor(el.clientWidth)),H=190,L=42,R=16,T=18,B=26,iw=W-L-R,ih=H-T-B,n=vals.length;
+  const X=i=>L+i*iw/(n-1),Y=v=>T+ih-Math.max(0,Math.min(v,o.max))/o.max*ih;
+  let g=o.ticks.map(t=>`<line class="gl" x1="${L}" x2="${W-R}" y1="${Y(t)}" y2="${Y(t)}"/><text class="ax" x="${L-6}" y="${Y(t)+4}" text-anchor="end">${o.fmt(t)}</text>`).join('');
+  const maxLabels=Math.max(2,Math.floor(iw/58));
+  const step=Math.ceil(n/maxLabels);
+  const lab=[];for(let i=0;i<n;i+=step)lab.push(i);if(lab[lab.length-1]!==n-1){if(n-1-lab[lab.length-1]<step*.6)lab.pop();lab.push(n-1)}
+  g+=lab.map(i=>`<text class="ax" x="${X(i)}" y="${H-6}" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${day(dates[i])}</text>`).join('');
+  const pts=vals.map((v,i)=>[X(i),Y(v)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=`${line} L${X(n-1)} ${T+ih} L${X(0)} ${T+ih} Z`;
+  const dots=n<=40?pts.slice(0,-1).map(p=>`<circle class="dt" cx="${p[0]}" cy="${p[1]}" r="2.6"/>`).join(''):'';
+  const [ex,ey]=pts[n-1],ly=ey<T+16?ey+18:ey-9;
+  el.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.label}">${g}<path class="ar" d="${area}"/><path class="ln" d="${line}"/>${dots}<circle class="end" cx="${ex}" cy="${ey}" r="4.5"/><text class="vl" x="${ex-6}" y="${ly}" text-anchor="end">${o.fmt(Math.round(vals[n-1]))}</text></svg>`;
+}
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(isProgress())renderProgress()},150)});
+
+window.addEventListener('hashchange',render);
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)bank();
+  else if(!isProgress()&&!S_.done&&S_.qs.length&&!(settings.mode==='practice'&&S_.locked[S_.i]))S_.timing={i:S_.i,at:Date.now()};
+});
+
 renderSetup();
 draft=JSON.parse(JSON.stringify(settings));
 newPaper();
+sync();
 </script>
 </body>
 </html>

@@ -27,6 +27,37 @@ python3 -m http.server 8000
 
 **Netlify / Cloudflare Pages / Vercel:** point them at the repo with no build command and the publish directory set to `/`.
 
+## Progress tracking
+
+Each person gets a progress link, `…/11plus/?id=<guid>`. The id is created on first visit and added to the address bar, so bookmarking the page keeps it. Opening the same link on another device brings back the same history.
+
+When a paper is marked, the app records each question's type, whether it was right, whether the **first** choice was right, and the seconds spent on it. The **Progress** tab shows right-first-time and seconds-per-question charts, a breakdown by question type, and the weakest type.
+
+Results are always kept in the browser. If a progress server is configured they are also saved there, and anything recorded while offline is uploaded on the next visit.
+
+### Progress server (Cloudflare Worker + KV)
+
+The Worker lives in `worker/`. It stores one KV record per progress link and only accepts requests from the origins listed in `worker/wrangler.toml`.
+
+One-time setup:
+
+```sh
+cd worker
+npx wrangler login
+npx wrangler kv namespace create PROGRESS   # paste the printed id into wrangler.toml
+npx wrangler deploy                         # prints https://nvr-progress.<you>.workers.dev
+```
+
+Then put that URL in `index.html`:
+
+```html
+<meta name="progress-api" content="https://nvr-progress.<you>.workers.dev">
+```
+
+To redeploy the Worker automatically when `worker/` changes, add `CLOUDFLARE_API_TOKEN` (with the *Edit Cloudflare Workers* template) and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+
+Anyone holding a progress link can read and add to that history, so treat the link like an unlisted bookmark rather than an account.
+
 ## How questions are made
 
 Each figure is a set of attributes (shape, shading, rotation, mirroring, number and type of small marks). Generators pick a rule, build the figures, then reject any question where a different rule could also justify another answer, or where two options look identical. Every question carries a plain-English explanation of its rule.
