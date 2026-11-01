@@ -11,3 +11,35 @@ id = "REPLACE_WITH_KV_NAMESPACE_ID"
 [vars]
 # Sites allowed to read and write progress (comma separated, no trailing slash).
 ALLOWED_ORIGINS = "https://o-os.uk,https://oli-sanders.github.io,http://localhost:8000"
+
+# Rate limits. Counted per Cloudflare location and approximate, so treat them as abuse brakes, not exact quotas.
+# period must be 10 or 60 seconds. namespace_id is any positive integer, unique within the account.
+# A paper takes minutes and writes once, so these leave plenty of room for a household on one connection.
+
+[[ratelimits]]
+name = "READ_LIMIT"      # page loads / syncs per IP
+namespace_id = "11001"
+  [ratelimits.simple]
+  limit = 60
+  period = 60
+
+[[ratelimits]]
+name = "WRITE_LIMIT"     # saved papers per IP (covers an offline backlog uploading at once)
+namespace_id = "11002"
+  [ratelimits.simple]
+  limit = 20
+  period = 60
+
+[[ratelimits]]
+name = "ID_LIMIT"        # saved papers per progress link
+namespace_id = "11003"
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+[[ratelimits]]
+name = "NEW_LIMIT"       # brand-new progress links per IP
+namespace_id = "11004"
+  [ratelimits.simple]
+  limit = 3
+  period = 60

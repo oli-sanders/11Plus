@@ -748,7 +748,7 @@ const progressLink=()=>`${location.origin}${location.pathname}?id=${PID}`;
 const mergeSessions=(a,b)=>{const m=new Map();a.concat(b).forEach(s=>{if(s&&s.id&&Array.isArray(s.q))m.set(s.id,s)});return [...m.values()].sort((x,y)=>x.t-y.t)};
 async function api(method,body){
   const r=await fetch(`${API}/progress/${encodeURIComponent(PID)}`,{method,headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
-  if(!r.ok)throw new Error('HTTP '+r.status);
+  if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e}
   return r.json();
 }
 let flushing=null;
@@ -776,19 +776,21 @@ async function sync(){
     const missing=profile.sessions.filter(s=>!remote.has(s.id));
     const pend=store.get(PKEY,[]);store.set(PKEY,mergeSessions(pend,missing));
     await flush();profile.sync='synced';
-  }catch(e){profile.sync='offline'}
+  }catch(e){failed(e)}
   refreshProfileUI();
 }
+let retryT=null;
+function failed(e){profile.sync=e&&e.status===429?'limited':'offline';clearTimeout(retryT);retryT=setTimeout(sync,e&&e.status===429?65000:30000)}
 async function recordSession(s){
   profile.sessions=mergeSessions(profile.sessions,[s]);store.set(SKEY,profile.sessions);
   if(API){
     store.set(PKEY,mergeSessions(store.get(PKEY,[]),[s]));profile.sync='saving';refreshSync();
-    try{await flush();profile.sync='synced'}catch(e){profile.sync='offline'}
+    try{await flush();profile.sync='synced'}catch(e){failed(e)}
   }
   refreshProfileUI();
 }
 const SYNCTEXT={local:['Saved in this browser only.',''],loading:['Loading your progress…',''],saving:['Saving…',''],
-  synced:['Saved to your progress link.','ok'],offline:['Could not reach the progress server. Saved in this browser; it will retry.','warn']};
+  synced:['Saved to your progress link.','ok'],limited:['Too many saves in a short time. Saved in this browser; it will upload in a minute.','warn'],offline:['Could not reach the progress server. Saved in this browser; it will retry.','warn']};
 function refreshSync(){document.querySelectorAll('.syncState').forEach(el=>{const [t,c]=SYNCTEXT[profile.sync];el.textContent=t;el.className='sync syncState '+c})}
 function refreshProfileUI(){refreshSync();if(isProgress())renderProgress()}
 window.addEventListener('online',()=>{if(API)sync()});

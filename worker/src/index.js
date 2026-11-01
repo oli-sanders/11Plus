@@ -3,6 +3,13 @@
 //
 //   GET  /progress/:id   -> the record (or an empty one)
 //   POST /progress/:id   -> body { session }, appends it (idempotent on session.id), returns the record
+//
+// Rate limits (Cloudflare rate-limiting bindings, counted per Cloudflare location, approximate):
+//   READ_LIMIT   reads per IP
+//   WRITE_LIMIT  writes per IP
+//   ID_LIMIT     writes per progress id
+//   NEW_LIMIT    new progress ids created per IP
+// Over a limit -> 429 with Retry-After. Missing bindings (e.g. local tests) are treated as allowed.
 
 const ID_RE = /^[A-Za-z0-9-]{8,64}$/;
 const TYPES = new Set(['odd', 'similar', 'series', 'analogy', 'codes', 'matrix']);
@@ -21,13 +28,16 @@ export default {
     const id = decodeURIComponent(m[1]);
     if (!ID_RE.test(id)) return json({ error: 'Invalid progress id' }, 400, cors);
     const key = `p:${id}`;
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
     if (request.method === 'GET') {
+      if (!(await allowed(env.READ_LIMIT, `r:${ip}`))) return tooMany(cors);
       const rec = (await env.PROGRESS.get(key, 'json')) || emptyRecord();
       return json(rec, 200, { ...cors, 'Cache-Control': 'no-store' });
     }
 
     if (request.method === 'POST') {
+      if (!(await allowed(env.WRITE_LIMIT, `w:${ip}`)) || !(await allowed(env.ID_LIMIT, `i:${id}`))) return tooMany(cors);
       const text = await request.text();
       if (text.length > MAX_BODY) return json({ error: 'Body too large' }, 413, cors);
       let body;
@@ -35,7 +45,9 @@ export default {
       const session = cleanSession(body && body.session);
       if (!session) return json({ error: 'Invalid session' }, 400, cors);
 
-      const rec = (await env.PROGRESS.get(key, 'json')) || emptyRecord();
+      const existing = await env.PROGRESS.get(key, 'json');
+      if (!existing && !(await allowed(env.NEW_LIMIT, `n:${ip}`))) return tooMany(cors);
+      const rec = existing || emptyRecord();
       if (!rec.sessions.some((s) => s.id === session.id)) {
         rec.sessions.push(session);
         rec.sessions.sort((a, b) => a.t - b.t);
@@ -49,6 +61,20 @@ export default {
     return json({ error: 'Method not allowed' }, 405, cors);
   },
 };
+
+async function allowed(limiter, key) {
+  if (!limiter) return true;
+  try {
+    const { success } = await limiter.limit({ key });
+    return success;
+  } catch {
+    return true; // fail open: a limiter outage shouldn't lose a child's results
+  }
+}
+
+function tooMany(cors) {
+  return json({ error: 'Too many requests. Try again in a minute.' }, 429, { ...cors, 'Retry-After': '60' });
+}
 
 function emptyRecord() {
   return { v: 1, updated: 0, sessions: [] };
@@ -83,6 +109,7 @@ function corsHeaders(request, env) {
   const h = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Expose-Headers': 'Retry-After',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
