@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Free 11+ non-verbal reasoning practice. Every question is generated fresh: odd one out, series, analogies, codes, grids and more.">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121419" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+html{color-scheme:light dark;-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Shape Logic 11+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow exam-booklet column; the question sheet is the only framed object, answers sit in an OMR-style lozenge row */
+:root{
+  --paper:#f6f7f9; --sheet:#ffffff; --ink:#1a1c21; --muted:#5d6370; --tone:#a6abb5; --rule:#d6d9e0;
+  --accent:#cf2f63; --accent-soft:#fbe6ee; --ok:#17804f; --ok-soft:#e1f3ea; --bad:#b8321f; --bad-soft:#fbe8e4;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#121419; --sheet:#1a1d24; --ink:#e8eaef; --muted:#9aa0ad; --tone:#646a76; --rule:#30343e;
+  --accent:#f2668f; --accent-soft:#3a1d29; --ok:#4cc28a; --ok-soft:#173226; --bad:#f07a63; --bad-soft:#3a1f1a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#121419; --sheet:#1a1d24; --ink:#e8eaef; --muted:#9aa0ad; --tone:#646a76; --rule:#30343e;
+  --accent:#f2668f; --accent-soft:#3a1d29; --ok:#4cc28a; --ok-soft:#173226; --bad:#f07a63; --bad-soft:#3a1f1a; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:780px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,40px);line-height:1;margin:0;letter-spacing:-.02em}
+.brand h1 span{color:var(--accent)}
+.brand p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.tally{font-family:var(--f-mono);font-size:13px;color:var(--muted);display:flex;gap:14px;font-variant-numeric:tabular-nums}
+.tally b{color:var(--ink);font-weight:600}
+
+/* settings */
+details.setup{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+details.setup summary{list-style:none;padding:12px 0;font-family:var(--f-mono);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+details.setup summary::-webkit-details-marker{display:none}
+details.setup summary::after{content:"+";font-size:18px;color:var(--ink)}
+details.setup[open] summary::after{content:"–"}
+.setup-body{display:flex;flex-direction:column;gap:14px;padding-bottom:16px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field>label,.field>.lbl{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--rule);background:var(--sheet);border-radius:999px;padding:5px 12px;font-size:14px}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
+.setup-row{display:flex;flex-wrap:wrap;gap:18px}
+.go{align-self:flex-start;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-weight:700}
+
+/* sheet */
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:18px clamp(14px,3vw,26px) 22px;display:flex;flex-direction:column;gap:16px}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.qtype{color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.bar{height:4px;background:var(--rule);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.prompt{font-family:var(--f-display);font-weight:600;font-size:clamp(19px,4.4vw,24px);line-height:1.2;margin:0;text-wrap:balance}
+
+.fig{display:block;width:100%;height:auto}
+.frame{border:1.5px solid var(--rule);border-radius:4px;background:var(--sheet);aspect-ratio:1;max-width:100%;display:grid;place-items:center;position:relative}
+.frame.q{border-style:dashed;border-color:var(--accent);font-family:var(--f-display);font-weight:800;font-size:clamp(22px,6vw,34px);color:var(--accent)}
+.stage{display:flex;justify-content:center}
+.row5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%;max-width:520px}
+.examples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;border:1.5px solid var(--ink);border-radius:6px;width:100%;max-width:330px}
+.analogy{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.5vw,10px);flex-wrap:wrap}
+.pair{display:flex;align-items:center;gap:clamp(4px,1.5vw,10px)}
+.pair .frame{width:clamp(62px,17vw,96px)}
+.arrow{font-size:20px;color:var(--muted)}
+.sep{width:1px;align-self:stretch;background:var(--rule);margin:0 6px}
+.codes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-end}
+.code-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:clamp(56px,15vw,84px)}
+.code-item .frame{width:100%}
+.code-item code{font-family:var(--f-mono);font-weight:600;font-size:15px;letter-spacing:.12em}
+.code-item.test .frame{border-color:var(--ink);border-width:2px}
+.code-item.test code{color:var(--accent)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;width:min(100%,300px);border:1.5px solid var(--ink)}
+.grid3 .frame{border-radius:0;border-width:0 1px 1px 0;border-color:var(--rule);border-style:solid}
+.grid3 .frame.q{border-style:dashed;border-width:1.5px;border-color:var(--accent)}
+
+/* answer row */
+.opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--sheet);border:1.5px solid var(--rule);border-radius:6px;padding:6px 4px 8px;min-width:0;transition:border-color .15s, background .15s}
+.opt:hover{border-color:var(--muted)}
+.opt .codeopt{font-family:var(--f-mono);font-weight:600;font-size:clamp(14px,3.6vw,18px);letter-spacing:.1em;padding:10px 0 4px}
+.loz{display:inline-flex;align-items:center;justify-content:center;width:34px;height:17px;border:1.5px solid var(--accent);border-radius:9px;font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--accent);background:var(--sheet)}
+.opt.sel{border-color:var(--ink)}
+.opt.sel .loz{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .loz{background:var(--ok);border-color:var(--ok);color:var(--sheet)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .loz{background:var(--bad);border-color:var(--bad);color:var(--sheet)}
+.opt[disabled]{cursor:default}
+
+.feedback{border-left:3px solid var(--ok);background:var(--ok-soft);padding:10px 14px;border-radius:0 6px 6px 0}
+.feedback.no{border-color:var(--bad);background:var(--bad-soft)}
+.feedback strong{display:block;font-family:var(--f-display);font-size:17px}
+.feedback p{margin:2px 0 0;max-width:65ch}
+
+.nav{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.btn{border:1.5px solid var(--ink);background:var(--sheet);border-radius:8px;padding:9px 16px;font-weight:700}
+.btn.primary{background:var(--ink);color:var(--sheet)}
+.btn[disabled]{opacity:.35;cursor:default}
+.hint{font-size:13px;color:var(--muted)}
+kbd{font-family:var(--f-mono);font-size:12px;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 5px}
+
+/* results */
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.score .big{font-family:var(--f-display);font-weight:800;font-size:clamp(48px,12vw,72px);line-height:1;font-variant-numeric:tabular-nums}
+.score .big small{font-size:.45em;color:var(--muted)}
+.score .meta{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+table.bytype{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.bytype th,table.bytype td{text-align:left;padding:7px 4px;border-bottom:1px solid var(--rule);font-size:15px}
+table.bytype th{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+table.bytype td.n{text-align:right;font-family:var(--f-mono)}
+.meter{display:inline-block;width:70px;height:6px;background:var(--rule);border-radius:3px;vertical-align:middle;margin-left:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ink)}
+.review{display:flex;flex-direction:column;gap:12px}
+.review h3{font-family:var(--f-display);margin:8px 0 0;font-size:20px}
+.rv{border:1px solid var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:12px;background:var(--sheet)}
+.rv .qhead span.res{font-weight:600}
+.rv .qhead span.res.ok{color:var(--ok)} .rv .qhead span.res.no{color:var(--bad)}
+.rv .prompt{font-size:17px}
+.rv .opts{max-width:460px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:420px){ .opts,.row5{gap:5px} .opt{padding:4px 2px 6px} .loz{width:28px} }
+</style>
+
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="pStripe" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <rect width="6" height="6" style="fill:var(--sheet)"></rect>
+      <line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--ink);stroke-width:2.6"></line>
+    </pattern>
+    <pattern id="pDots" patternUnits="userSpaceOnUse" width="6" height="6">
+      <rect width="6" height="6" style="fill:var(--sheet)"></rect>
+      <circle cx="3" cy="3" r="1.35" style="fill:var(--ink)"></circle>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Shape Logic <span>11+</span></h1>
+      <p>Non-verbal reasoning practice. Every question is generated fresh.</p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <details class="setup" id="setup">
+    <summary>Set up a paper</summary>
+    <div class="setup-body">
+      <div class="field"><span class="lbl">Question types</span><div class="chips" id="typeChips"></div></div>
+      <div class="setup-row">
+        <div class="field"><span class="lbl">Difficulty</span><div class="chips" id="levelChips"></div></div>
+        <div class="field"><span class="lbl">Questions</span><div class="chips" id="lenChips"></div></div>
+        <div class="field"><span class="lbl">Mode</span><div class="chips" id="modeChips"></div></div>
+      </div>
+      <p class="hint" id="modeHint" style="margin:0"></p>
+      <button class="go" id="startBtn" type="button">Start new paper</button>
+    </div>
+  </details>
+
+  <main id="main"></main>
+</div>
+
+<script>
+/* ---------- random helpers ---------- */
+const rnd=Math.random;
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sample=(a,k)=>shuffle(a).slice(0,k);
+const gcd=(a,b)=>b?gcd(b,a%b):a; const lcm=(a,b)=>a/gcd(a,b)*b;
+const LET='ABCDE';
+
+/* ---------- shape library (unit coords, drawn at S px) ---------- */
+const REG=(n,r=1)=>Array.from({length:n},(_,i)=>{const t=-Math.PI/2+i*2*Math.PI/n;return[r*Math.cos(t),r*Math.sin(t)]});
+const STAR=Array.from({length:10},(_,i)=>{const t=-Math.PI/2+i*Math.PI/5,r=i%2?0.46:1;return[r*Math.cos(t),r*Math.sin(t)]});
+const h=.34;
+const SH={
+  circle:{sides:0,sym:45,name:'circle'},
+  tri:{pts:REG(3,1.05),sides:3,sym:120,name:'triangle'},
+  ttri:{pts:[[0,-1],[.7,.9],[-.7,.9]],c:[0,.4],sides:3,sym:360,name:'tall triangle'},
+  rtri:{pts:[[-.75,-.95],[-.75,.8],[.85,.8]],c:[-.33,.38],sides:3,sym:360,chiral:true,name:'right-angled triangle'},
+  sq:{pts:[[-.8,-.8],[.8,-.8],[.8,.8],[-.8,.8]],sides:4,sym:90,name:'square'},
+  rect:{pts:[[-1,-.6],[1,-.6],[1,.6],[-1,.6]],sides:4,sym:180,name:'rectangle'},
+  trap:{pts:[[-.5,-.7],[.5,-.7],[1,.7],[-1,.7]],c:[0,.1],sides:4,sym:360,name:'trapezium'},
+  kite:{pts:[[0,-1],[.7,-.3],[0,1],[-.7,-.3]],c:[0,-.12],sides:4,sym:360,name:'kite'},
+  para:{pts:[[-.6,-.5],[1,-.5],[.6,.5],[-1,.5]],sides:4,sym:180,chiral:true,name:'parallelogram'},
+  pent:{pts:REG(5),sides:5,sym:72,name:'pentagon'},
+  house:{pts:[[0,-1],[.8,-.3],[.8,.9],[-.8,.9],[-.8,-.3]],c:[0,.25],sides:5,sym:360,name:'house shape'},
+  hex:{pts:REG(6),sides:6,sym:60,name:'hexagon'},
+  lhex:{pts:[[-1,0],[-.5,-.65],[.5,-.65],[1,0],[.5,.65],[-.5,.65]],sides:6,sym:180,name:'long hexagon'},
+  L:{pts:[[-.8,-1],[-.05,-1],[-.05,.25],[.8,.25],[.8,1],[-.8,1]],c:[-.425,.625],sides:6,sym:360,chiral:true,name:'L-shape'},
+  hept:{pts:REG(7),sides:7,sym:360,name:'heptagon'},
+  arrow:{pts:[[0,-1],[.85,0],[.38,0],[.38,.95],[-.38,.95],[-.38,0],[-.85,0]],c:[0,-.05],sides:7,sym:360,name:'arrow'},
+  cross:{pts:[[-h,-1],[h,-1],[h,-h],[1,-h],[1,h],[h,h],[h,1],[-h,1],[-h,h],[-1,h],[-1,-h],[-h,-h]],sides:12,sym:90,name:'cross'},
+  star:{pts:STAR,sides:10,sym:72,name:'star'}
+};
+const GENERAL=['circle','tri','sq','pent','hex','star','cross','arrow','rect','kite','house','trap','ttri','lhex','hept'];
+const FAM={3:['tri','ttri','rtri'],4:['sq','rect','trap','kite','para'],5:['pent','house'],6:['hex','lhex','L'],7:['hept','arrow']};
+const ROTATABLE=['arrow','L','ttri','house','rtri','trap','para'];
+const REGSEQ=['tri','sq','pent','hex','hept'];
+const CODE_SHAPES=['circle','tri','sq','pent','hex','star','cross','arrow'];
+const FILLS=['white','grey','black','stripes','dots'];
+const MARKS=['dot','sq','tri'];
+const FILLNAME={white:'empty',grey:'grey',black:'solid',stripes:'striped',dots:'dotted'};
+const MARKNAME={dot:'circles',sq:'squares',tri:'triangles'};
+const MARK1={dot:'circle',sq:'square',tri:'triangle'};
+const ATTRLABEL={shape:'shape',fill:'shading',n:'number of small marks',mark:'type of small mark'};
+
+/* ---------- figures ---------- */
+const fig=o=>Object.assign({shape:'circle',fill:'white',rot:0,mx:false,n:0,mark:'dot'},o);
+const clone=f=>Object.assign({},f);
+const canRot=s=>ROTATABLE.includes(s);
+function randFig(){const shape=pick(GENERAL);return fig({shape,fill:pick(FILLS),n:ri(0,3),mark:pick(MARKS),rot:canRot(shape)?pick([0,90,180,270]):0})}
+function key(f){
+  const d=SH[f.shape];let L=lcm(45,d.sym);
+  if(f.n){L=lcm(L,{1:45,2:180,3:120,4:90}[f.n]);L=lcm(L,{dot:45,sq:90,tri:120}[f.mark])}
+  L=Math.min(L,360);const r=((f.rot%L)+L)%L;
+  return [f.shape,f.fill,f.n,f.n?f.mark:'-',r,d.chiral&&f.mx?1:0].join('|');
+}
+function av(f,a){return a==='mark'?(f.n?f.mark:'-'):a==='sides'?SH[f.shape].sides:f[a]}
+function describe(f){
+  let s=`${FILLNAME[f.fill]} ${SH[f.shape].name}`;
+  if(f.n) s+=` with ${f.n} small ${f.n>1?MARKNAME[f.mark]:MARK1[f.mark]}`;
+  return s;
+}
+const aD=f=>{const d=describe(f);return (/^[aeiou]/.test(d)?'an ':'a ')+d};
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+
+/* ---------- rendering ---------- */
+const S=30;
+const FC={white:'var(--sheet)',grey:'var(--tone)',black:'var(--ink)',stripes:'url(#pStripe)',dots:'url(#pDots)'};
+const LAY={1:[[0,0]],2:[[-7,0],[7,0]],3:[[0,-7],[7,5],[-7,5]],4:[[-6.5,-6.5],[6.5,-6.5],[6.5,6.5],[-6.5,6.5]]};
+function figSVG(f){
+  const d=SH[f.shape];
+  const st=`style="fill:${FC[f.fill]};stroke:var(--ink);stroke-width:2.2;stroke-linejoin:round"`;
+  const body=f.shape==='circle'?`<circle r="${.95*S}" ${st}/>`:`<polygon points="${d.pts.map(p=>(p[0]*S).toFixed(1)+','+(p[1]*S).toFixed(1)).join(' ')}" ${st}/>`;
+  let marks='';
+  if(f.n){
+    const c=d.c||[0,0],cx=c[0]*S,cy=c[1]*S,dark=f.fill==='black',r=3.7;
+    const ms=`style="fill:${dark?'var(--sheet)':'var(--ink)'};stroke:${dark?'none':'var(--sheet)'};stroke-width:1.3"`;
+    marks=LAY[f.n].map(([x,y])=>{x+=cx;y+=cy;
+      if(f.mark==='dot')return `<circle cx="${x}" cy="${y}" r="${r}" ${ms}/>`;
+      if(f.mark==='sq')return `<rect x="${x-r*.88}" y="${y-r*.88}" width="${r*1.76}" height="${r*1.76}" ${ms}/>`;
+      return `<polygon points="${x},${y-r*1.15} ${x+r*1.05},${y+r*.8} ${x-r*1.05},${y+r*.8}" ${ms}/>`;}).join('');
+  }
+  return `<svg viewBox="0 0 100 100" class="fig" aria-hidden="true"><g transform="translate(50 50) rotate(${f.rot})${f.mx?' scale(-1 1)':''}">${body}${marks}</g></svg>`;
+}
+const frame=f=>`<div class="frame">${figSVG(f)}</div>`;
+const qframe=()=>`<div class="frame q">?</div>`;
+
+/* ---------- generators ---------- */
+function splitIdx(vals){const c={};vals.forEach(v=>c[v]=(c[v]||0)+1);const ks=Object.keys(c);
+  if(ks.length===2){const one=ks.find(k=>c[k]===1);if(one!==undefined)return vals.findIndex(v=>String(v)===one)}return -1}
+const ATTRS=['shape','fill','n','mark','sides'];
+const allDistinct=F=>new Set(F.map(key)).size===F.length;
+const ROTS8=[0,45,90,135,180,225,270,315];
+
+function genOdd(hard){
+  const rule=pick(hard?['fill','n','mark','sides','mirror','mirror','sides']:['fill','n','mark','sides','fill']);
+  for(let t=0;t<600;t++){
+    const odd=ri(0,4);let F,a,b;
+    if(rule==='mirror'){
+      const shape=pick(['L','rtri','para']),fill=pick(FILLS);
+      const rots=shape==='para'?shuffle([0,45,90,135]):sample(ROTS8,4);let k=0;
+      F=[0,1,2,3,4].map(i=>i===odd?fig({shape,fill,rot:pick(ROTS8),mx:true}):fig({shape,fill,rot:rots[k++]}));
+      if(!allDistinct(F))continue;
+      return {type:'odd',options:F,answer:odd,explain:`Four are the same ${SH[shape].name} turned to different angles. ${LET[odd]} is a mirror image, so no amount of turning makes it match the others.`};
+    }
+    F=[0,1,2,3,4].map(randFig);
+    if(rule==='fill'){[a,b]=sample(FILLS,2);F.forEach((f,i)=>f.fill=i===odd?b:a)}
+    if(rule==='n'){a=ri(1,4);b=pick([0,1,2,3,4].filter(x=>x!==a));F.forEach((f,i)=>f.n=i===odd?b:a)}
+    if(rule==='mark'){[a,b]=sample(MARKS,2);F.forEach((f,i)=>{f.mark=i===odd?b:a;if(!f.n)f.n=ri(1,3)})}
+    if(rule==='sides'){a=pick([3,4,4,5,6]);b=pick([3,4,5,6,7].filter(x=>Math.abs(x-a)===1));
+      F.forEach((f,i)=>{f.shape=pick(FAM[i===odd?b:a]);f.rot=canRot(f.shape)?pick([0,90,180,270]):0})}
+    if(!allDistinct(F))continue;
+    if(splitIdx(F.map(f=>av(f,rule)))!==odd)continue;
+    if(ATTRS.some(x=>x!==rule&&splitIdx(F.map(f=>av(f,x)))!==-1))continue;
+    const L=LET[odd];
+    const ex={fill:`Four shapes are ${FILLNAME[a]}. ${L} is ${FILLNAME[b]}.`,
+      n:`Four shapes have ${plural(a,'small mark')} inside. ${L} has ${b}.`,
+      mark:`In four shapes the small marks are ${MARKNAME[a]}. In ${L} they are ${MARKNAME[b]}.`,
+      sides:`Four shapes have ${a} straight sides. ${L} has ${b}. Count the sides, not the look of the shape.`}[rule];
+    return {type:'odd',options:F,answer:odd,explain:ex};
+  }
+}
+
+function genSimilar(hard){
+  const rule=pick(hard?['fill','n','mark','sides','rotate','rotate','sides']:['fill','n','mark','sides','fill']);
+  for(let t=0;t<800;t++){
+    const ans=ri(0,4);let E,O,v;
+    if(rule==='rotate'){
+      const shape=pick(['L','rtri','para']),fill=pick(FILLS),rots=shuffle(ROTS8);
+      E=[0,1,2].map(i=>fig({shape,fill,rot:rots[i]}));
+      O=[0,1,2,3,4].map(i=>fig({shape,fill,rot:i===ans?rots[3]:pick(ROTS8),mx:i!==ans}));
+      if(!allDistinct(E.concat(O)))continue;
+      return {type:'similar',examples:E,options:O,answer:ans,explain:`The three in the box are the same ${SH[shape].name}, just turned. ${LET[ans]} is that shape turned again. The other options are mirror images.`};
+    }
+    E=[0,1,2].map(randFig);O=[0,1,2,3,4].map(randFig);
+    if(rule==='fill'){v=pick(FILLS);E.forEach(f=>f.fill=v);O.forEach((f,i)=>f.fill=i===ans?v:pick(FILLS.filter(x=>x!==v)))}
+    if(rule==='n'){v=ri(1,4);E.forEach(f=>f.n=v);O.forEach((f,i)=>f.n=i===ans?v:pick([0,1,2,3,4].filter(x=>x!==v)))}
+    if(rule==='mark'){v=pick(MARKS);E.concat(O).forEach(f=>{if(!f.n)f.n=ri(1,3)});E.forEach(f=>f.mark=v);O.forEach((f,i)=>f.mark=i===ans?v:pick(MARKS.filter(x=>x!==v)))}
+    if(rule==='sides'){v=pick([3,4,4,5,6]);
+      const setRot=f=>{f.rot=canRot(f.shape)?pick([0,90,180,270]):0};
+      E.forEach(f=>{f.shape=pick(FAM[v]);setRot(f)});
+      O.forEach((f,i)=>{f.shape=i===ans?pick(FAM[v]):pick(FAM[pick([3,4,5,6,7].filter(x=>x!==v))]);setRot(f)})}
+    if(!allDistinct(E.concat(O)))continue;
+    // only the rule may be shared by all three examples
+    if(ATTRS.some(x=>x!==rule&&new Set(E.map(f=>av(f,x))).size===1))continue;
+    const L=LET[ans];
+    const ex={fill:`All three in the box are ${FILLNAME[v]}. Only ${L} is ${FILLNAME[v]} too.`,
+      n:`Each shape in the box has ${plural(v,'small mark')}. Only ${L} also has ${v}.`,
+      mark:`In every box shape the small marks are ${MARKNAME[v]}. Only ${L} has ${MARKNAME[v]}.`,
+      sides:`Each shape in the box has ${v} straight sides. Only ${L} also has ${v} sides.`}[rule];
+    return {type:'similar',examples:E,options:O,answer:ans,explain:ex};
+  }
+}
+
+function pickDistractors(correct,cands,need=4,groups){
+  const seen=new Set([key(correct)]),out=[];
+  const add=f=>{const k=key(f);if(!seen.has(k)){seen.add(k);out.push(f)}};
+  if(groups) shuffle(groups).forEach(g=>{for(const f of shuffle(g)){const before=out.length;add(f);if(out.length>before)break}});
+  shuffle(cands).forEach(f=>{if(out.length<need)add(f)});
+  return out.length>=need?out.slice(0,need):null;
+}
+function placeAnswer(correct,ds){const ans=ri(0,4);const o=ds.slice();o.splice(ans,0,correct);return {options:o,answer:ans}}
+
+function genSeries(hard){
+  for(let t=0;t<600;t++){
+    const rules=sample(['rot','n','fill','mark','sides'],hard?pick([2,3]):pick([1,2]));
+    if(rules.includes('rot')&&rules.includes('sides'))continue;
+    if(rules.includes('n')&&rules.includes('mark'))continue;
+    const has=r=>rules.includes(r);
+    const base=fig({shape:has('rot')?pick(['arrow','L','ttri','rtri','house']):pick(['circle','sq','pent','hex','star','cross','rect','tri']),
+      fill:pick(FILLS),n:has('mark')?ri(1,4):ri(0,3),mark:pick(MARKS)});
+    const P={};
+    if(has('rot')){P.step=pick(hard?[45,-45,90,-90,135]:[90,-90,45]);P.start=pick([0,90,180,270])}
+    if(has('n'))P.ndir=pick([1,-1]);
+    if(has('fill'))P.fc=sample(FILLS,pick([2,3]));
+    if(has('mark'))P.mc=sample(MARKS,pick([2,3]));
+    if(has('sides'))P.sdir=pick([1,-1]);
+    const at=i=>{const f=clone(base);
+      if(has('rot'))f.rot=P.start+P.step*i;
+      if(has('n')){f.n=P.ndir>0?i:4-i;if(f.n<0||f.n>4)return null}
+      if(has('fill'))f.fill=P.fc[((i%P.fc.length)+P.fc.length)%P.fc.length];
+      if(has('mark'))f.mark=P.mc[((i%P.mc.length)+P.mc.length)%P.mc.length];
+      if(has('sides')){const j=P.sdir>0?i:4-i;if(j<0||j>4)return null;f.shape=REGSEQ[j]}
+      return f};
+    const frames=[0,1,2,3,4].map(at);
+    const m=hard?ri(0,4):4, correct=frames[m];
+    const groups=rules.map(r=>[m-1,m+1,m+2,m-2].map(at).filter(Boolean).map(g=>{const f=clone(correct);
+      if(r==='rot')f.rot=g.rot;if(r==='n')f.n=g.n;if(r==='fill')f.fill=g.fill;if(r==='mark')f.mark=g.mark;if(r==='sides')f.shape=g.shape;return f}));
+    const extra=[];
+    if(!has('fill'))extra.push(Object.assign(clone(correct),{fill:pick(FILLS.filter(x=>x!==correct.fill))}));
+    if(!has('n')&&!has('mark'))extra.push(Object.assign(clone(correct),{n:pick([0,1,2,3,4].filter(x=>x!==correct.n))}));
+    if(has('mark'))extra.push(Object.assign(clone(correct),{n:correct.n===4?3:correct.n+1}));
+    if(has('rot'))extra.push(Object.assign(clone(correct),{mx:SH[correct.shape].chiral?true:false,rot:correct.rot+180}));
+    if(!has('sides')&&!has('rot'))extra.push(Object.assign(clone(correct),{shape:pick(['circle','sq','pent','hex','star','cross'].filter(x=>x!==correct.shape))}));
+    const ds=pickDistractors(correct,groups.flat().concat(extra),4,groups);
+    if(!ds)continue;
+    const parts=rules.map(r=>({
+      rot:`the ${SH[base.shape].name} turns ${Math.abs(P.step)}° ${P.step>0?'clockwise':'anticlockwise'} each step`,
+      n:`there is one ${P.ndir>0?'more':'fewer'} small mark each step`,
+      fill:`the shading repeats ${P.fc&&P.fc.map(x=>FILLNAME[x]).join(', ')}`,
+      mark:`the small marks repeat ${P.mc&&P.mc.map(x=>MARKNAME[x]).join(', ')}`,
+      sides:`the shape ${P.sdir>0?'gains':'loses'} one side each step`}[r]));
+    const p=placeAnswer(correct,ds);
+    return {type:'series',frames,missing:m,...p,explain:cap(listJoin(parts))+'. '+`So the missing frame is ${aD(correct)}.`};
+  }
+}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const listJoin=a=>a.length<2?a.join(''):a.slice(0,-1).join('; ')+(a.length>2?';':'')+' and '+a[a.length-1];
+
+function genAnalogy(hard){
+  for(let t=0;t<800;t++){
+    const T=sample(['rot','mirror','invert','nplus','nminus','markswap','sides'],hard?pick([2,3]):pick([1,2]));
+    const has=r=>T.includes(r);
+    if(has('sides')&&(has('rot')||has('mirror')))continue;
+    if(has('nplus')&&has('nminus'))continue;
+    const step=pick([90,-90,180]),[m1,m2]=sample(MARKS,2);
+    const shapes=has('mirror')?['L','rtri','para']:has('rot')?['arrow','L','ttri','house','rtri']:has('sides')?['tri','sq','pent','hex']:GENERAL;
+    const mk=()=>{const shape=pick(shapes);const f=fig({shape,fill:has('invert')?pick(['white','black']):pick(FILLS),
+      n:has('nplus')?ri(0,3):has('nminus')?ri(1,4):has('markswap')?ri(1,3):ri(0,3),
+      mark:has('markswap')?m1:pick(MARKS),rot:canRot(shape)?pick([0,90,180,270]):0});return f};
+    const apply=(tt,f0,variant)=>{const f=clone(f0);tt.forEach(r=>{
+      if(r==='rot')f.rot+=variant==='rot'?-step:step;
+      if(r==='mirror')f.mx=!f.mx;
+      if(r==='invert')f.fill=variant==='invert'?'grey':(f.fill==='white'?'black':'white');
+      if(r==='nplus')f.n=Math.min(4,f.n+(variant==='nplus'?2:1));
+      if(r==='nminus')f.n=Math.max(0,f.n-(variant==='nminus'?2:1));
+      if(r==='markswap'&&f.mark===m1)f.mark=variant==='markswap'?MARKS.find(x=>x!==m1&&x!==m2):m2;
+      if(r==='sides')f.shape=REGSEQ[REGSEQ.indexOf(f.shape)+(variant==='sides'?2:1)];});return f};
+    const A=mk(),C=mk();
+    if(A.shape===C.shape||key(A)===key(C))continue;
+    if(T.some(r=>key(apply([r],A))===key(A)||key(apply([r],C))===key(C)))continue;
+    const B=apply(T,A),D=apply(T,C);
+    const cands=[];
+    for(let mask=0;mask<(1<<T.length)-1;mask++)cands.push(apply(T.filter((_,i)=>mask&(1<<i)),C));
+    const variants=T.map(r=>apply(T,C,r)).filter(f=>SH[f.shape]);
+    const extra=[];
+    if(!has('invert'))extra.push(Object.assign(clone(D),{fill:pick(FILLS.filter(x=>x!==D.fill))}));
+    if(!has('rot')&&!has('mirror')&&canRot(D.shape))extra.push(Object.assign(clone(D),{rot:D.rot+90}));
+    const ds=pickDistractors(D,cands.concat(variants,extra),4,[cands.slice(1),variants].filter(g=>g.length));
+    if(!ds)continue;
+    const parts=T.map(r=>({rot:step===180?'it turns halfway round (180°)':`it turns 90° ${step>0?'clockwise':'anticlockwise'}`,
+      mirror:'it is flipped over into its mirror image',invert:'empty and solid shading swap',
+      nplus:'one small mark is added',nminus:'one small mark is taken away',
+      markswap:`small ${MARKNAME[m1]} become ${MARKNAME[m2]}`,sides:'the shape gains one side'}[r]));
+    const p=placeAnswer(D,ds);
+    return {type:'analogy',A,B,C,...p,explain:`From the first shape to the second, ${listJoin(parts)}. Do the same to the third shape to get ${aD(D)}.`};
+  }
+}
+
+function genCodes(hard){
+  const ALL=['shape','fill','n','mark'];
+  for(let t=0;t<1500;t++){
+    const nc=hard?3:2;const coded=sample(ALL,nc);const has=a=>coded.includes(a);
+    const vals={shape:sample(CODE_SHAPES,3),fill:sample(FILLS,3),n:sample([1,2,3,4],3),mark:sample(MARKS,3)};
+    const letters=['ABC','XYZ','PQR'].slice(0,nc).map(s=>shuffle(s.split('')));
+    const constant={shape:pick(CODE_SHAPES),fill:pick(FILLS),n:has('mark')?ri(1,3):0,mark:pick(MARKS)};
+    const build=idx=>{const f=fig({});
+      ALL.forEach(a=>{const ci=coded.indexOf(a);
+        if(ci>=0)f[a]=vals[a][idx[ci]];
+        else if(hard){f[a]=a==='shape'?pick(CODE_SHAPES):a==='fill'?pick(FILLS):a==='n'?(has('mark')?ri(1,3):ri(0,3)):pick(MARKS)}
+        else f[a]=constant[a];});
+      return f};
+    const nEx=nc===2?4:5;
+    const exIdx=Array.from({length:nEx},()=>coded.map(()=>ri(0,2)));
+    const testIdx=coded.map(()=>ri(0,2));
+    const sig=a=>a.join(',');
+    if(new Set(exIdx.map(sig)).size<nEx)continue;
+    if(exIdx.some(e=>sig(e)===sig(testIdx)))continue;
+    if(testIdx.some((v,p)=>!exIdx.some(e=>e[p]===v)))continue;
+    const ex=exIdx.map(build),test=build(testIdx);
+    if(!allDistinct(ex.concat([test])))continue;
+    const code=idx=>idx.map((v,p)=>letters[p][v]).join('');
+    const exCodes=exIdx.map(code),answer=code(testIdx);
+    // ambiguity: no other feature may explain any letter position differently
+    let bad=false;
+    for(let p=0;p<nc&&!bad;p++)for(const a of ATTRS){
+      const v2l={},l2v={};let ok=true;
+      ex.forEach((f,i)=>{const v=String(av(f,a)),l=exCodes[i][p];if((v2l[v]&&v2l[v]!==l)||(l2v[l]&&l2v[l]!==v))ok=false;v2l[v]=l;l2v[l]=v});
+      if(ok){const pred=v2l[String(av(test,a))];if(pred&&pred!==answer[p]){bad=true;break}}
+    }
+    if(bad)continue;
+    const opts=new Set([answer]);
+    const pool=[];
+    for(let p=0;p<nc;p++)letters[p].forEach(l=>{if(l!==answer[p])pool.push(answer.slice(0,p)+l+answer.slice(p+1))});
+    if(nc===2)letters[0].forEach(l=>letters[1].forEach(l2=>{if(l!==answer[0]&&l2!==answer[1])pool.push(l+l2)}));
+    shuffle(pool).forEach(c=>{if(opts.size<5)opts.add(c)});
+    if(opts.size<5)continue;
+    const ds=[...opts].slice(1);const p=placeAnswer(answer,ds);
+    const ord=['First','Second','Third'];
+    const expl=coded.map((a,pos)=>{const pairs=[...new Set(exIdx.map(e=>e[pos]))].sort((x,y)=>letters[pos][x]<letters[pos][y]?-1:1).map(v=>`${letters[pos][v]} = ${a==='shape'?SH[vals.shape[v]].name:a==='fill'?FILLNAME[vals.fill[v]]:a==='n'?plural(vals.n[v],'mark'):MARKNAME[vals.mark[v]]}`);
+      return `${ord[pos]} letter is the ${ATTRLABEL[a]}: ${pairs.join(', ')}.`});
+    return {type:'codes',examples:ex,exCodes,test,...p,explain:expl.join(' ')+(hard?' Anything else that changes is a distraction.':'')+` So the code is ${answer}.`};
+  }
+}
+
+function genMatrix(hard){
+  for(let t=0;t<600;t++){
+    const pickAttrs=sample(['shape','fill','n','mark'],hard?3:2);
+    const has=a=>pickAttrs.includes(a);
+    const vals={shape:sample(['circle','tri','sq','pent','hex','star','cross'],3),fill:sample(FILLS,3),
+      n:pick([[1,2,3],[0,1,2],[2,3,4],[3,2,1]]),mark:sample(MARKS,3)};
+    if(has('mark')&&has('n'))vals.n=pick([[1,2,3],[2,3,4],[3,2,1]]);
+    const base=fig({shape:pick(['circle','sq','pent','hex','star']),fill:pick(FILLS),n:has('mark')?ri(1,3):ri(0,2),mark:pick(MARKS)});
+    const [rA,cA,lA]=pickAttrs;const dir=pick([1,2]);
+    const cell=(r,c)=>{const f=clone(base);f[rA]=vals[rA][r];f[cA]=vals[cA][c];if(lA)f[lA]=vals[lA][(r+dir*c)%3];return f};
+    const cells=[];for(let r=0;r<3;r++)for(let c=0;c<3;c++)cells.push(cell(r,c));
+    if(!allDistinct(cells))continue;
+    const m=hard?ri(0,8):8,correct=cells[m];
+    const groups=pickAttrs.map(a=>vals[a].filter(v=>v!==correct[a]).map(v=>Object.assign(clone(correct),{[a]:v})));
+    const others=['shape','fill'].filter(a=>!has(a)).map(a=>Object.assign(clone(correct),{[a]:a==='shape'?pick(['circle','sq','pent','hex','star'].filter(x=>x!==correct.shape)):pick(FILLS.filter(x=>x!==correct.fill))}));
+    const ds=pickDistractors(correct,groups.flat().concat(others),4,groups);
+    if(!ds)continue;
+    const nm=(a,v)=>a==='shape'?SH[v].name:a==='fill'?FILLNAME[v]:a==='n'?plural(v,'mark'):MARKNAME[v];
+    let ex=`Going down, each row has its own ${ATTRLABEL[rA]} (${vals[rA].map(v=>nm(rA,v)).join(', ')}). Going across, each column has its own ${ATTRLABEL[cA]} (${vals[cA].map(v=>nm(cA,v)).join(', ')}).`;
+    if(lA)ex+=` The ${ATTRLABEL[lA]} appears once in every row and every column.`;
+    ex+=` The gap needs ${aD(correct)}.`;
+    const p=placeAnswer(correct,ds);
+    return {type:'matrix',cells,missing:m,...p,explain:ex};
+  }
+}
+
+const TYPES=[
+  {id:'odd',name:'Odd one out',prompt:'Which shape is the odd one out?',gen:genOdd},
+  {id:'similar',name:'Find the similar',prompt:'Which option belongs with the three shapes in the box?',gen:genSimilar},
+  {id:'series',name:'Series',prompt:'Which option completes the series?',gen:genSeries},
+  {id:'analogy',name:'Analogies',prompt:'The first pair is linked. Which option completes the second pair in the same way?',gen:genAnalogy},
+  {id:'codes',name:'Codes',prompt:'Work out the code for the shape on the right.',gen:genCodes},
+  {id:'matrix',name:'Grids',prompt:'Which option fits the gap in the grid?',gen:genMatrix}
+];
+const TMAP=Object.fromEntries(TYPES.map(t=>[t.id,t]));
+
+/* ---------- state ---------- */
+const DEF={types:TYPES.map(t=>t.id),hard:false,len:10,mode:'practice'};
+let settings=Object.assign({},DEF);
+try{const s=JSON.parse(localStorage.getItem('nvr-settings')||'null');if(s&&Array.isArray(s.types)&&s.types.length)settings=Object.assign({},DEF,s)}catch(e){}
+const saveSettings=()=>{try{localStorage.setItem('nvr-settings',JSON.stringify(settings))}catch(e){}};
+let draft=JSON.parse(JSON.stringify(settings));
+let S_={qs:[],i:0,ans:[],locked:[],t0:0,t1:0,done:false};
+let timer=null;
+
+function makeQ(type,hard){for(let k=0;k<5;k++){const q=TMAP[type].gen(hard);if(q){q.hard=hard;return q}}return null}
+function newPaper(){
+  settings=JSON.parse(JSON.stringify(draft));saveSettings();
+  const order=[];let pool=[];
+  while(order.length<settings.len){if(!pool.length)pool=shuffle(settings.types);order.push(pool.pop())}
+  const qs=order.map(t=>makeQ(t,settings.hard)).filter(Boolean);
+  S_={qs,i:0,ans:qs.map(()=>null),locked:qs.map(()=>false),t0:Date.now(),t1:0,done:false};
+  clearInterval(timer);timer=setInterval(tick,1000);
+  render();
+}
+const fmt=ms=>{const s=Math.floor(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
+function tick(){const el=document.getElementById('clock');if(el&&!S_.done)el.textContent=fmt(Date.now()-S_.t0)}
+
+/* ---------- settings UI ---------- */
+function chip(label,pressed,on){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed',pressed);b.onclick=on;return b}
+function renderSetup(){
+  const tc=document.getElementById('typeChips');tc.innerHTML='';
+  TYPES.forEach(t=>tc.appendChild(chip(t.name,draft.types.includes(t.id),()=>{
+    const has=draft.types.includes(t.id);if(has&&draft.types.length===1)return;
+    draft.types=has?draft.types.filter(x=>x!==t.id):draft.types.concat(t.id);renderSetup()})));
+  const lc=document.getElementById('levelChips');lc.innerHTML='';
+  [['Standard',false],['Challenging',true]].forEach(([l,v])=>lc.appendChild(chip(l,draft.hard===v,()=>{draft.hard=v;renderSetup()})));
+  const nc=document.getElementById('lenChips');nc.innerHTML='';
+  [10,20,30].forEach(n=>nc.appendChild(chip(String(n),draft.len===n,()=>{draft.len=n;renderSetup()})));
+  const mc=document.getElementById('modeChips');mc.innerHTML='';
+  [['Practice','practice'],['Test','test']].forEach(([l,v])=>mc.appendChild(chip(l,draft.mode===v,()=>{draft.mode=v;renderSetup()})));
+  document.getElementById('modeHint').textContent=draft.mode==='practice'
+    ?'Practice: see the answer and the reasoning straight after each question.'
+    :'Test: answer everything first, change answers as you go, then mark the paper at the end. The clock runs throughout.';
+}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('setup').open=false;newPaper()};
+
+/* ---------- question rendering ---------- */
+function stageHTML(q){
+  if(q.type==='similar')return `<div class="stage"><div class="examples">${q.examples.map(frame).join('')}</div></div>`;
+  if(q.type==='series')return `<div class="stage"><div class="row5">${q.frames.map((f,i)=>i===q.missing?qframe():frame(f)).join('')}</div></div>`;
+  if(q.type==='analogy')return `<div class="stage analogy"><div class="pair">${frame(q.A)}<span class="arrow">→</span>${frame(q.B)}</div><span class="sep" aria-hidden="true"></span><div class="pair">${frame(q.C)}<span class="arrow">→</span>${qframe()}</div></div>`;
+  if(q.type==='codes')return `<div class="stage codes">${q.examples.map((f,i)=>`<div class="code-item">${frame(f)}<code>${q.exCodes[i]}</code></div>`).join('')}<div class="code-item test">${frame(q.test)}<code>??</code></div></div>`;
+  if(q.type==='matrix')return `<div class="stage"><div class="grid3">${q.cells.map((f,i)=>i===q.missing?qframe():frame(f)).join('')}</div></div>`;
+  return '';
+}
+function optsHTML(q,chosen,reveal,interactive){
+  return `<div class="opts" role="group" aria-label="Answer options">${q.options.map((o,i)=>{
+    let cls='opt';
+    if(reveal){if(i===q.answer)cls+=' right';else if(i===chosen)cls+=' wrong'}
+    else if(i===chosen)cls+=' sel';
+    const inner=q.type==='codes'?`<span class="codeopt">${o}</span>`:figSVG(o);
+    return `<button type="button" class="${cls}" data-i="${i}" ${interactive?'':'disabled'} aria-label="Option ${LET[i]}">${inner}<span class="loz">${LET[i]}</span></button>`}).join('')}</div>`;
+}
+function feedbackHTML(q,chosen){
+  const ok=chosen===q.answer;
+  const head=chosen==null?`Not answered. The answer is ${LET[q.answer]}.`:ok?`Correct, ${LET[q.answer]}.`:`Not quite. The answer is ${LET[q.answer]}.`;
+  return `<div class="feedback ${ok?'':'no'}"><strong>${head}</strong><p>${q.explain}</p></div>`;
+}
+
+function renderTally(){
+  const t=document.getElementById('tally');
+  if(!S_.qs.length){t.innerHTML='';return}
+  const marked=S_.qs.filter((q,i)=>S_.locked[i]);
+  const right=marked.filter((q)=>S_.ans[S_.qs.indexOf(q)]===q.answer).length;
+  t.innerHTML=settings.mode==='practice'||S_.done
+    ?`<span>Score <b>${right}/${marked.length}</b></span><span>Time <b id="clock">${fmt((S_.done?S_.t1:Date.now())-S_.t0)}</b></span>`
+    :`<span>Answered <b>${S_.ans.filter(a=>a!=null).length}/${S_.qs.length}</b></span><span>Time <b id="clock">${fmt(Date.now()-S_.t0)}</b></span>`;
+}
+
+function render(){
+  renderTally();
+  const main=document.getElementById('main');
+  if(S_.done){main.innerHTML=resultsHTML();bindResults();return}
+  const q=S_.qs[S_.i],i=S_.i,N=S_.qs.length;
+  const practice=settings.mode==='practice',locked=S_.locked[i],chosen=S_.ans[i];
+  const last=i===N-1;
+  let nav='';
+  if(practice){
+    nav=locked?`<span class="hint">Press <kbd>Enter</kbd> for next</span><button class="btn primary" id="next" type="button">${last?'See results':'Next question'}</button>`
+      :`<span class="hint">Tap an option or press <kbd>A</kbd>–<kbd>E</kbd></span><span></span>`;
+  }else{
+    nav=`<button class="btn" id="prev" type="button" ${i===0?'disabled':''}>Back</button><button class="btn primary" id="${last?'finish':'next'}" type="button">${last?'Mark paper':'Next'}</button>`;
+  }
+  main.innerHTML=`<section class="sheet" aria-live="polite">
+    <div class="qhead"><span class="qtype">${TMAP[q.type].name}${q.hard?' · challenging':''}</span><span>Question ${i+1} of ${N}</span></div>
+    <div class="bar"><i style="width:${(i/N*100).toFixed(1)}%"></i></div>
+    <h2 class="prompt">${TMAP[q.type].prompt}</h2>
+    ${stageHTML(q)}
+    ${optsHTML(q,chosen,practice&&locked,!(practice&&locked))}
+    ${practice&&locked?feedbackHTML(q,chosen):''}
+    <div class="nav">${nav}</div>
+  </section>`;
+  main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+  const nx=document.getElementById('next');if(nx)nx.onclick=next;
+  const pv=document.getElementById('prev');if(pv)pv.onclick=()=>{S_.i--;render()};
+  const fn=document.getElementById('finish');if(fn)fn.onclick=finish;
+}
+function choose(k){
+  const i=S_.i;if(settings.mode==='practice'&&S_.locked[i])return;
+  S_.ans[i]=k;
+  if(settings.mode==='practice')S_.locked[i]=true;
+  render();
+  if(settings.mode==='practice'){const nx=document.getElementById('next');if(nx)nx.focus({preventScroll:true})}
+}
+function next(){
+  if(S_.i>=S_.qs.length-1){finish();return}
+  S_.i++;render();
+  const sh=document.querySelector('.sheet');if(sh&&sh.getBoundingClientRect().top<0)sh.scrollIntoView({block:'start'});
+}
+function finish(){S_.locked=S_.qs.map(()=>true);S_.done=true;S_.t1=Date.now();clearInterval(timer);render();window.scrollTo({top:0})}
+
+function resultsHTML(){
+  const N=S_.qs.length,right=S_.qs.filter((q,i)=>S_.ans[i]===q.answer).length;
+  const ms=S_.t1-S_.t0;
+  const byType=TYPES.map(t=>{const idx=S_.qs.map((q,i)=>q.type===t.id?i:-1).filter(i=>i>=0);
+    return {t,n:idx.length,r:idx.filter(i=>S_.ans[i]===S_.qs[i].answer).length}}).filter(x=>x.n);
+  const wrong=S_.qs.map((q,i)=>i).filter(i=>S_.ans[i]!==S_.qs[i].answer);
+  return `<section class="sheet">
+    <div class="qhead"><span class="qtype">Paper marked</span><span>${settings.hard?'Challenging':'Standard'} · ${settings.mode==='test'?'Test':'Practice'}</span></div>
+    <div class="score"><div class="big">${right}<small>/${N}</small></div>
+      <div class="meta">${Math.round(right/N*100)}% correct<br>${fmt(ms)} total · ${Math.round(ms/1000/N)}s per question</div></div>
+    <table class="bytype"><thead><tr><th>Question type</th><th style="text-align:right">Score</th></tr></thead><tbody>
+    ${byType.map(x=>`<tr><td>${x.t.name}</td><td class="n">${x.r}/${x.n}<span class="meter"><i style="width:${x.r/x.n*100}%"></i></span></td></tr>`).join('')}
+    </tbody></table>
+    <div class="nav"><button class="btn" id="reviewAll" type="button">Show all questions</button><button class="btn primary" id="again" type="button">New paper, same settings</button></div>
+  </section>
+  <section class="review" id="review">${reviewHTML(wrong.length?wrong:[],wrong.length?'Questions to look at again':'Full marks. Nothing to review.')}</section>`;
+}
+function reviewHTML(list,title){
+  return `<h3>${title}</h3>`+list.map(i=>{const q=S_.qs[i],a=S_.ans[i],ok=a===q.answer;
+    return `<article class="rv"><div class="qhead"><span class="qtype">Q${i+1} · ${TMAP[q.type].name}</span><span class="res ${ok?'ok':'no'}">${a==null?'Not answered':ok?'Correct':'You chose '+LET[a]}</span></div>
+    <h4 class="prompt">${TMAP[q.type].prompt}</h4>${stageHTML(q)}${optsHTML(q,a,true,false)}${feedbackHTML(q,a)}</article>`}).join('');
+}
+function bindResults(){
+  document.getElementById('again').onclick=newPaper;
+  const ra=document.getElementById('reviewAll');
+  ra.onclick=()=>{document.getElementById('review').innerHTML=reviewHTML(S_.qs.map((q,i)=>i),'All questions');ra.disabled=true};
+}
+
+document.addEventListener('keydown',e=>{
+  if(S_.done||!S_.qs.length||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target.closest&&e.target.closest('summary'))return;
+  const k=e.key.toLowerCase();const idx='abcde'.indexOf(k);const nIdx='12345'.indexOf(k);
+  if(idx>=0||nIdx>=0){choose(idx>=0?idx:nIdx);e.preventDefault();return}
+  if((k==='enter'||k==='arrowright')&&(settings.mode==='test'||S_.locked[S_.i])){
+    if(e.target.tagName==='BUTTON'&&k==='enter')return;
+    next();e.preventDefault()}
+  if(k==='arrowleft'&&settings.mode==='test'&&S_.i>0){S_.i--;render()}
+});
+
+renderSetup();
+draft=JSON.parse(JSON.stringify(settings));
+newPaper();
+</script>
+</body>
+</html>
