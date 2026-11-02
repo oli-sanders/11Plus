@@ -453,6 +453,8 @@ function genAnalogy(hard){
     if(A.shape===C.shape||key(A)===key(C))continue;
     if(T.some(r=>key(apply([r],A))===key(A)||key(apply([r],C))===key(C)))continue;
     const B=apply(T,A),D=apply(T,C);
+    // every rule must still show in the finished pair, e.g. a mark change can't vanish because the mark was removed
+    if(T.some(r=>{const rest=T.filter(x=>x!==r);return key(apply(rest,A))===key(B)||key(apply(rest,C))===key(D)}))continue;
     const cands=[];
     for(let mask=0;mask<(1<<T.length)-1;mask++)cands.push(apply(T.filter((_,i)=>mask&(1<<i)),C));
     const variants=T.map(r=>apply(T,C,r)).filter(f=>SH[f.shape]);
@@ -465,9 +467,43 @@ function genAnalogy(hard){
       mirror:'it is flipped over into its mirror image',invert:'empty and solid shading swap',
       nplus:'one small mark is added',nminus:'one small mark is taken away',
       markswap:`small ${MARKNAME[m1]} become ${MARKNAME[m2]}`,sides:'the shape gains one side'}[r]));
+    if(analogyAmbiguous(A,B,C,D,ds))continue;
     const p=placeAnswer(D,ds);
     return {type:'analogy',A,B,C,...p,explain:`From the first shape to the second, ${listJoin(parts)}. Do the same to the third shape to get ${aD(D)}.`};
   }
+}
+
+/* Alternative rules a child might reasonably see in a pair. A question is rejected if any
+   combination of up to three of them turns A into B but turns C into one of the wrong options. */
+const ALT_OPS=(()=>{
+  const ops=[];
+  const add=(cat,fn)=>ops.push({cat,fn});
+  [90,-90,180].forEach(d=>add('rot',f=>Object.assign(clone(f),{rot:f.rot+d})));
+  add('mx',f=>Object.assign(clone(f),{mx:!f.mx}));
+  FILLS.forEach(x=>add('fill',f=>Object.assign(clone(f),{fill:x})));
+  [1,-1,2,-2].forEach(d=>add('n',f=>{const n=f.n+d;return n<0||n>4?null:Object.assign(clone(f),{n})}));
+  MARKS.forEach(x=>add('mark',f=>Object.assign(clone(f),{mark:x})));
+  [1,-1].forEach(d=>add('shape',f=>{const i=REGSEQ.indexOf(f.shape);return i<0||!REGSEQ[i+d]?null:Object.assign(clone(f),{shape:REGSEQ[i+d]})}));
+  GENERAL.concat(['rtri','para','L']).forEach(x=>add('shape',f=>f.shape===x?null:Object.assign(clone(f),{shape:x,rot:canRot(x)?f.rot:0})));
+  return ops;
+})();
+function analogyAmbiguous(A,B,C,D,wrong){
+  const kB=key(B),bad=new Set(wrong.map(key));bad.delete(key(D));
+  let found=false;
+  const walk=(a,c,used,depth)=>{
+    if(found)return;
+    if(depth&&key(a)===kB&&bad.has(key(c))){found=true;return}
+    if(depth===3)return;
+    for(const op of ALT_OPS){
+      if(used.includes(op.cat))continue;
+      const a2=op.fn(a);if(!a2)continue;
+      const c2=op.fn(c);if(!c2)continue;
+      walk(a2,c2,used.concat(op.cat),depth+1);
+      if(found)return;
+    }
+  };
+  walk(A,C,[],0);
+  return found;
 }
 
 function genCodes(hard){
