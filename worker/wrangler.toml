@@ -2,8 +2,8 @@ name = "nvr-progress"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
 
-# Create the namespace once with:  npx wrangler kv namespace create PROGRESS
-# then paste the id it prints below.
+# The real id comes from the KV_NAMESPACE_ID repository variable; the deploy workflow
+# substitutes it here. For a manual deploy, replace the placeholder locally (don't commit it).
 [[kv_namespaces]]
 binding = "PROGRESS"
 id = "REPLACE_WITH_KV_NAMESPACE_ID"

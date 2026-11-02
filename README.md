@@ -44,7 +44,7 @@ One-time setup:
 ```sh
 cd worker
 npx wrangler login
-npx wrangler kv namespace create PROGRESS   # paste the printed id into wrangler.toml
+npx wrangler kv namespace create PROGRESS   # note the printed id
 npx wrangler deploy                         # prints https://nvr-progress.<you>.workers.dev
 ```
 
@@ -54,7 +54,7 @@ Then put that URL in `index.html`:
 <meta name="progress-api" content="https://nvr-progress.<you>.workers.dev">
 ```
 
-To redeploy the Worker automatically when `worker/` changes, add `CLOUDFLARE_API_TOKEN` (with the *Edit Cloudflare Workers* template) and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+To deploy from GitHub Actions (automatically when `worker/` changes, or via *Run workflow*), add `CLOUDFLARE_API_TOKEN` (with the *Edit Cloudflare Workers* template) and `CLOUDFLARE_ACCOUNT_ID` as repository secrets, and `KV_NAMESPACE_ID` as a repository variable. For a manual deploy, put the id in place of the placeholder in `wrangler.toml` without committing it.
 
 Anyone holding a progress link can read and add to that history, so treat the link like an unlisted bookmark rather than an account.
 

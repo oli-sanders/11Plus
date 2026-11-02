@@ -11,6 +11,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Set KV namespace id
+        env:
+          KV_NAMESPACE_ID: ${{ vars.KV_NAMESPACE_ID || secrets.KV_NAMESPACE_ID }}
+        run: |
+          if ! [[ "$KV_NAMESPACE_ID" =~ ^[0-9a-f]{32}$ ]]; then
+            echo "::error::Set KV_NAMESPACE_ID (32 hex characters) under Settings > Secrets and variables > Actions > Variables."
+            exit 1
+          fi
+          sed -i "s/REPLACE_WITH_KV_NAMESPACE_ID/$KV_NAMESPACE_ID/" worker/wrangler.toml
+          grep -q "$KV_NAMESPACE_ID" worker/wrangler.toml
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
